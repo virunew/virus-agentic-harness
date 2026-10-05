@@ -1,0 +1,4 @@
+{"ticket_id": "lamp-1", "desk": "front", "body": "Replace the lobby lamp."}
+{"ticket_id": "parcel-2", "desk": "mail", "body": "Hold the afternoon parcel."}
+{"ticket_id": "NOT VALID", "desk": "front", "body": "This identifier uses capitals and a space."}
+{"ticket_id": "note-3", "desk": "front", "body": ""}
