@@ -1,0 +1,831 @@
+<!DOCTYPE html>
+<!--
+  Standalone talk deck. Open in any browser. No network, no build step.
+  Narrative: misconceptions -> challenges -> the method at a glance -> how each challenge is answered.
+  Navigation: left list, Previous / Next buttons, arrow keys, or #slide-N in the URL.
+-->
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Agentic coding: from hype to harness</title>
+  <style>
+    :root {
+      --bg: #fafafa;
+      --surface: #ffffff;
+      --subtle: #f4f4f5;
+      --border: #e4e4e7;
+      --text: #18181b;
+      --text-2: #52525b;
+      --text-3: #71717a;
+      --accent: #2563eb;
+      --accent-soft: #eff6ff;
+      --warn: #f59e0b;
+      --warn-soft: #fef3c7;
+      --danger: #dc2626;
+      --danger-soft: #fef2f2;
+      --ok: #10b981;
+      --ok-soft: #ecfdf5;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.55;
+    }
+    .page { max-width: 1240px; margin: 0 auto; padding: 24px 20px 48px; }
+    header.top { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+    header.top h1 { margin: 0; font-size: 24px; font-weight: 600; }
+    header.top p { margin: 4px 0 0; font-size: 13px; color: var(--text-2); }
+    .counter {
+      font-size: 12px; font-weight: 500; padding: 4px 10px; border-radius: 999px;
+      background: var(--accent); color: #fff; white-space: nowrap;
+    }
+    .layout { display: grid; grid-template-columns: 250px 1fr; gap: 20px; margin-top: 16px; align-items: start; }
+    nav.toc { display: flex; flex-direction: column; gap: 2px; position: sticky; top: 12px; }
+    nav.toc .act {
+      font-size: 11px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase;
+      color: var(--text-3); margin: 10px 0 2px 10px;
+    }
+    nav.toc .act:first-child { margin-top: 0; }
+    nav.toc button {
+      text-align: left; font-size: 13px; padding: 6px 10px; border-radius: 6px;
+      border: 1px solid transparent; background: transparent; color: var(--text); cursor: pointer;
+    }
+    nav.toc button[aria-current="true"] { background: var(--accent); color: #fff; }
+    nav.toc button:hover:not([aria-current="true"]) { background: var(--subtle); }
+    .controls { display: flex; gap: 8px; margin-bottom: 14px; }
+    .controls button {
+      font-size: 13px; padding: 8px 12px; border-radius: 6px; cursor: pointer;
+      border: 1px solid var(--border); background: var(--surface); color: var(--text);
+    }
+    .controls button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+    .controls button:disabled { opacity: .45; cursor: not-allowed; }
+    .controls .hint { margin-left: auto; font-size: 12px; color: var(--text-3); align-self: center; }
+
+    section.slide { display: none; flex-direction: column; gap: 14px; }
+    section.slide.active { display: flex; }
+    .kicker { font-size: 12px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: var(--accent); }
+    h2 { margin: 0; font-size: 22px; font-weight: 600; }
+    h3 { margin: 6px 0 0; font-size: 15px; font-weight: 600; }
+    p { margin: 0; font-size: 14.5px; }
+    .lead { font-size: 17px; color: var(--text); }
+    .muted { color: var(--text-2); }
+    .small { font-size: 12.5px; color: var(--text-3); }
+    ul.plain { margin: 0; padding-left: 18px; font-size: 14.5px; }
+    ul.plain li { margin: 3px 0; }
+
+    .grid { display: grid; gap: 12px; }
+    .g2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .g3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .g4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .card { border: 1px solid var(--border); border-radius: 8px; background: var(--surface); overflow: hidden; }
+    .card > .hd {
+      padding: 9px 14px; font-size: 13.5px; font-weight: 600;
+      background: var(--subtle); border-bottom: 1px solid var(--border);
+    }
+    .card > .bd { padding: 12px 14px; display: flex; flex-direction: column; gap: 6px; }
+    .card > .bd p { font-size: 14px; }
+
+    .callout { padding: 12px 14px; border-radius: 8px; border: 1px solid; font-size: 14px; }
+    .callout b.t { display: block; margin-bottom: 4px; }
+    .callout.info { background: var(--accent-soft); border-color: #93c5fd; }
+    .callout.warn { background: var(--warn-soft); border-color: var(--warn); }
+    .callout.danger { background: var(--danger-soft); border-color: #fca5a5; }
+    .callout.ok { background: var(--ok-soft); border-color: #6ee7b7; }
+
+    .stats { display: flex; flex-wrap: wrap; gap: 28px; }
+    .stat .v { font-size: 30px; font-weight: 600; line-height: 1.1; }
+    .stat .v.bad { color: var(--danger); }
+    .stat .l { font-size: 12.5px; color: var(--text-2); max-width: 200px; margin-top: 4px; }
+
+    table { width: 100%; border-collapse: collapse; font-size: 13.5px; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+    th, td { text-align: left; vertical-align: top; padding: 9px 12px; border-bottom: 1px solid var(--border); }
+    th { background: var(--subtle); font-weight: 600; font-size: 12.5px; color: var(--text-2); }
+    tr:last-child td { border-bottom: none; }
+    td.issue { font-weight: 600; width: 26%; }
+    td.why { color: var(--text-2); width: 30%; }
+
+    .pill {
+      display: inline-block; font-size: 11.5px; font-weight: 500; padding: 2px 8px; margin: 1px 2px 1px 0;
+      border-radius: 999px; background: var(--accent-soft); color: #1e40af; border: 1px solid #bfdbfe; white-space: nowrap;
+    }
+
+    .myth { display: grid; grid-template-columns: 1fr 1fr; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; background: var(--surface); }
+    .myth > div { padding: 12px 14px; }
+    .myth .m { background: var(--danger-soft); border-right: 1px solid var(--border); }
+    .myth .r { background: var(--surface); }
+    .myth .lbl { font-size: 11px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: var(--text-3); margin-bottom: 4px; }
+    .myth .m p { font-weight: 600; }
+
+    .flow { display: flex; flex-wrap: wrap; align-items: stretch; gap: 6px; }
+    .flow .step {
+      flex: 1 1 120px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface);
+      padding: 10px; font-size: 13px;
+    }
+    .flow .step b { display: block; font-size: 13.5px; }
+    .flow .step span { color: var(--text-2); font-size: 12.5px; }
+    .flow .gate { border-color: var(--accent); background: var(--accent-soft); }
+    .flow .arrow { align-self: center; color: var(--text-3); font-size: 16px; }
+
+    .harness { display: grid; grid-template-columns: 1fr 1.25fr 1fr; gap: 12px; align-items: stretch; }
+    .harness .col { display: flex; flex-direction: column; gap: 8px; }
+    .harness .center {
+      border: 2px solid var(--accent); border-radius: 10px; padding: 14px; background: var(--accent-soft);
+      display: flex; flex-direction: column; justify-content: center; gap: 6px; text-align: center;
+    }
+    .harness .center b { font-size: 16px; }
+    .harness .strap { border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; background: var(--surface); font-size: 13px; }
+    .harness .strap b { display: block; font-size: 13.5px; }
+
+    .bigquote { font-size: 22px; font-weight: 600; line-height: 1.35; max-width: 880px; }
+    footer.foot { margin-top: 22px; padding-top: 12px; border-top: 1px solid var(--border); font-size: 12px; color: var(--text-3); }
+
+    @media (max-width: 860px) {
+      .layout { grid-template-columns: 1fr; }
+      nav.toc { display: none; }
+      .g2, .g3, .g4, .harness, .myth { grid-template-columns: 1fr; }
+      .myth .m { border-right: none; border-bottom: 1px solid var(--border); }
+    }
+    @media print {
+      nav.toc, .controls { display: none; }
+      .layout { grid-template-columns: 1fr; }
+      section.slide { display: flex !important; page-break-after: always; }
+    }
+  </style>
+</head>
+<body>
+<div class="page">
+  <header class="top">
+    <div>
+      <h1>Agentic coding: from hype to harness</h1>
+      <p>What goes wrong when agents write the code, and a working method that answers each failure.</p>
+    </div>
+    <span class="counter" id="counter">1 / 1</span>
+  </header>
+
+  <div class="layout">
+    <nav class="toc" id="toc" aria-label="Slides"></nav>
+    <main>
+      <div class="controls">
+        <button id="prev" type="button">Previous</button>
+        <button id="next" type="button" class="primary">Next</button>
+        <span class="hint">Arrow keys also work</span>
+      </div>
+
+      <!-- ============ ACT 1: WHY THIS TALK ============ -->
+
+      <section class="slide" data-act="Why this talk" data-title="The promise and the bill">
+        <div class="kicker">Opening</div>
+        <h2>Agents made the first week fast. They did not make the project finish.</h2>
+        <p class="lead">
+          This talk comes from more than two years of LLM-assisted and then agentic coding. It includes
+          projects that were scrapped after months of steady effort. It also includes constant switching to
+          the newest tools and methods, hoping the next one would fix the problem.
+        </p>
+        <p>
+          The tools were not the problem. The way the work was organized around them was. The rest of this
+          talk is what was learned the hard way: what people believe about agentic coding, what actually goes
+          wrong, and the method that now keeps it from going wrong.
+        </p>
+        <div class="callout info">
+          <b class="t">The one-line thesis</b>
+          An agent is a team of strong, fast horses. Without a harness they run in every direction.
+          The method is the harness, and the reins stay in the developer's hands.
+        </div>
+      </section>
+
+      <section class="slide" data-act="Why this talk" data-title="Roadmap">
+        <div class="kicker">Roadmap</div>
+        <h2>Four parts</h2>
+        <div class="grid g4">
+          <div class="card"><div class="hd">1. Misconceptions</div><div class="bd"><p>Where the hype comes from, and four beliefs that do not survive a real codebase.</p></div></div>
+          <div class="card"><div class="hd">2. Challenges</div><div class="bd"><p>Fifteen things that go wrong when agents write production code, grouped into five families.</p></div></div>
+          <div class="card"><div class="hd">3. The method</div><div class="bd"><p>The flow and its highlights, at the level you need to follow the rest. Not every detail.</p></div></div>
+          <div class="card"><div class="hd">4. Answers</div><div class="bd"><p>Each challenge, matched to the part or parts of the method that answer it.</p></div></div>
+        </div>
+      </section>
+
+      <!-- ============ ACT 2: MISCONCEPTIONS ============ -->
+
+      <section class="slide" data-act="Misconceptions" data-title="Where the hype comes from">
+        <div class="kicker">Part 1 · Misconceptions</div>
+        <h2>The beliefs are built on real first impressions</h2>
+        <div class="grid g3">
+          <div class="card"><div class="hd">A prototype in an afternoon</div><div class="bd"><p>An agent can produce a working demo very quickly. That moment is genuinely impressive, and it becomes the reference point for everything that follows.</p></div></div>
+          <div class="card"><div class="hd">Fast changes, for a while</div><div class="bd"><p>For the first weeks it absorbs change requests quickly. The codebase is still small enough for the agent to hold in its head.</p></div></div>
+          <div class="card"><div class="hd">Vendor narrative</div><div class="bd"><p>Model and tool vendors market the best case. Demos are greenfield, short, and chosen to succeed.</p></div></div>
+        </div>
+        <p class="muted">
+          Each of these is true. The mistake is extrapolating from them to a large, long-lived codebase
+          that a team has to own.
+        </p>
+      </section>
+
+      <section class="slide" data-act="Misconceptions" data-title="Four misconceptions">
+        <div class="kicker">Part 1 · Misconceptions</div>
+        <h2>Four beliefs, and what actually happens</h2>
+        <div class="myth">
+          <div class="m"><div class="lbl">Belief</div><p>Code is cheap now.</p></div>
+          <div class="r"><div class="lbl">Reality</div><p>Code that comes cheap only goes so far. Writing it is cheap. Owning it is not: reviewing, reworking, and eventually scrapping it. Months of effort were lost this way.</p></div>
+        </div>
+        <div class="myth">
+          <div class="m"><div class="lbl">Belief</div><p>We will double or triple our output.</p></div>
+          <div class="r"><div class="lbl">Reality</div><p>That holds for prototypes and small projects. On mature work, measured speed can go down while people feel faster.</p></div>
+        </div>
+        <div class="myth">
+          <div class="m"><div class="lbl">Belief</div><p>Agents will work in every situation.</p></div>
+          <div class="r"><div class="lbl">Reality</div><p>Large codebases bring diminishing returns. The agent lacks the unwritten knowledge that lives in the team's heads.</p></div>
+        </div>
+        <div class="myth">
+          <div class="m"><div class="lbl">Belief</div><p>Agents work equally well with any technology.</p></div>
+          <div class="r"><div class="lbl">Reality</div><p>Agents are only as good as their training data. Closed-source, niche, or new technology with sparse public code gets weaker, more invented answers.</p></div>
+        </div>
+      </section>
+
+      <section class="slide" data-act="Misconceptions" data-title="What the evidence says">
+        <div class="kicker">Part 1 · Misconceptions</div>
+        <h2>Feeling faster is not being faster</h2>
+        <p>
+          METR ran a randomized controlled trial in early 2025. Sixteen experienced developers did 246 real
+          tasks in their own large open-source repositories (about a million lines of code each). Each task
+          was randomly allowed or not allowed to use AI tools.
+        </p>
+        <div class="stats">
+          <div class="stat"><div class="v">24%</div><div class="l">Speed-up the developers predicted before starting</div></div>
+          <div class="stat"><div class="v">20%</div><div class="l">Speed-up they believed they got, after finishing</div></div>
+          <div class="stat"><div class="v bad">19% slower</div><div class="l">What was measured, when AI was allowed</div></div>
+        </div>
+        <p>
+          The time went into prompting, waiting, reviewing, and correcting output. Developers reported that the
+          size and age of the codebase limited how much the agent could help. It could not use the tacit
+          knowledge they carried.
+        </p>
+        <p>
+          A separate study of open-source projects after Copilot adoption (Tilburg University) found output
+          went up, driven by less-experienced contributors. That code needed more rework. Core maintainers
+          reviewed 6.5% more code, and their own original output fell by 19%.
+        </p>
+        <div class="small">
+          <b>METR study, in full:</b> Joel Becker, Nate Rush, Beth Barnes, David Rein. "Measuring the Impact
+          of Early-2025 AI on Experienced Open-Source Developer Productivity". Model Evaluation &amp; Threat
+          Research (METR), 10 July 2025. arXiv 2507.09089.
+          <a href="https://metr.org/blog/2025-07-10-early-2025-ai-experienced-os-dev-study/">Blog post</a> ·
+          <a href="https://metr.org/Early_2025_AI_Experienced_OS_Devs_Study-paper.pdf">Paper (PDF)</a>.
+          Design: a randomized controlled trial run February to June 2025. 16 experienced developers, with
+          about 5 years each on their own project, did 246 real tasks: bug fixes, features, and refactors,
+          averaging about 2 hours each. The repositories averaged 22k+ GitHub stars and 1M+ lines of code.
+          Each task was randomly assigned to allow or forbid AI tools. When AI was allowed, developers mostly
+          used Cursor Pro with Claude 3.5/3.7 Sonnet. Screens were recorded, and developers were paid $150 an
+          hour.
+          Results:
+          <ul>
+            <li>Developers forecast a 24% speed-up beforehand, and estimated 20% afterwards.</li>
+            <li>Economics experts predicted 39% faster, and ML experts 38% faster.</li>
+            <li>Measured: 19% slower when AI was allowed.</li>
+          </ul>
+          METR examined 20 factors that could explain the slowdown and found no single cause. With AI,
+          developers spent less time coding and searching. They spent more time prompting, waiting on and
+          reviewing AI output, and idle.
+          METR calls the result a snapshot of early-2025 tools in one setting: mature, high-standard
+          codebases that the developers know well.
+          <br/>Also cited: Xu et al., "AI-Assisted Programming Decreases the Productivity of
+          Experienced Developers by Increasing the Technical Debt and Maintenance Burden", arXiv 2510.10165.
+          Both are snapshots of specific settings and tools, not a verdict on all software work.
+        </div>
+      </section>
+
+      <!-- ============ ACT 3: CHALLENGES ============ -->
+
+      <section class="slide" data-act="Challenges" data-title="Fifteen challenges, five families">
+        <div class="kicker">Part 2 · Challenges</div>
+        <h2>What goes wrong when agents write production code</h2>
+        <p class="muted">Each family is answered later by one or more parts of the method.</p>
+        <div class="grid g3">
+          <div class="card"><div class="hd">A. Control</div><div class="bd">
+            <ul class="plain">
+              <li>The agent makes decisions the developer never sees</li>
+              <li>Too many options, not all examined</li>
+              <li><b>Developers stop reading, and stop understanding, the code</b></li>
+            </ul></div></div>
+          <div class="card"><div class="hd">B. Speed</div><div class="bd">
+            <ul class="plain">
+              <li>Output arrives faster than anyone can follow</li>
+              <li>Developers are now expected to deliver outcomes just as fast</li>
+            </ul></div></div>
+          <div class="card"><div class="hd">C. Memory and consistency</div><div class="bd">
+            <ul class="plain">
+              <li>Limited memory; long-term memory is unsolved</li>
+              <li>Forgets things in the middle of the context</li>
+              <li>Misses one task among many</li>
+              <li>Different answer on every turn for the same problem</li>
+            </ul></div></div>
+          <div class="card"><div class="hd">D. Quality</div><div class="bd">
+            <ul class="plain">
+              <li>Uses patterns it has seen, not the ones we chose</li>
+              <li>Re-implements instead of reusing</li>
+              <li>Can write excellent code or garbage</li>
+              <li>Over-complex: tries to handle every eventuality</li>
+            </ul></div></div>
+          <div class="card"><div class="hd">E. Team and cost</div><div class="bd">
+            <ul class="plain">
+              <li>Several people with agents on one codebase multiply the chaos</li>
+              <li>Costs can climb out of control quickly</li>
+            </ul></div></div>
+          <div class="callout warn"><b class="t">The common root</b>
+            Each failure is a decision, a memory, or a check that was left to the agent, or to nobody.
+          </div>
+        </div>
+      </section>
+
+      <section class="slide" data-act="Challenges" data-title="Control and speed">
+        <div class="kicker">Part 2 · Challenges</div>
+        <h2>Control slips away quietly, because the output looks good</h2>
+        <div class="grid g2">
+          <div class="card"><div class="hd">Hidden decisions</div><div class="bd"><p>Every response has dozens of small choices inside it: a default value, a fallback, a new dependency, a renamed field. None of them are announced. Together they become the architecture.</p></div></div>
+          <div class="card"><div class="hd">Option overload</div><div class="bd"><p>Asked for an approach, the agent offers four. They all sound reasonable. Few people read all four carefully, so the choice is made on the first paragraph.</p></div></div>
+          <div class="card"><div class="hd">Reading stops</div><div class="bd"><p>After enough good results, developers skim, then stop reading. That is exactly when the first serious mistake gets in.</p></div></div>
+          <div class="card"><div class="hd">Speed pressure</div><div class="bd"><p>The agent writes faster than a person can review. Managers see the speed and expect outcomes at the same pace. Review is the first thing cut.</p></div></div>
+        </div>
+      </section>
+
+      <section class="slide" data-act="Challenges" data-title="Memory and quality">
+        <div class="kicker">Part 2 · Challenges</div>
+        <h2>The agent forgets, varies, and writes what it has seen most</h2>
+        <div class="grid g2">
+          <div class="card"><div class="hd">Memory</div><div class="bd"><p>Everything it knows about your project lives in the current context. A new session starts nearly blank. In a long context, instructions in the middle fade, and one task in a list of ten gets dropped.</p></div></div>
+          <div class="card"><div class="hd">Consistency</div><div class="bd"><p>Ask the same question twice and you get two different designs. Without a written decision, each session re-decides.</p></div></div>
+          <div class="card"><div class="hd">Familiar patterns</div><div class="bd"><p>It reproduces the most common patterns in its training data, good and bad. A new pattern your team chose has to be taught every time.</p></div></div>
+          <div class="card"><div class="hd">Complexity and duplication</div><div class="bd"><p>It writes a fresh implementation instead of finding the existing one. It adds defensive branches, options, and fallbacks for cases nobody asked about.</p></div></div>
+        </div>
+      </section>
+
+      <section class="slide" data-act="Challenges" data-title="The understanding gap">
+        <div class="kicker">Part 2 · Challenges · The central one</div>
+        <h2>Understanding is the new bottleneck</h2>
+        <p class="lead">
+          Agents write code faster than people can absorb it. The quiet failure is not bad code. It is
+          code the team no longer understands.
+        </p>
+        <div class="grid g2">
+          <div class="card"><div class="hd">Understand to verify</div><div class="bd"><p>The first reason: check the agent's work. Does it match the spec? Is it well built? That is a yes-or-no question, and agents are getting better at answering it themselves.</p></div></div>
+          <div class="card"><div class="hd">Understand to participate</div><div class="bd"><p>The stronger reason: a project is many loops with the agent, not one. Your understanding of the system is where the next good idea comes from. Without it you can only approve, not steer.</p></div></div>
+        </div>
+        <div class="callout danger"><b class="t">Cognitive debt</b>
+          Cognitive debt is like technical debt, but for understanding. You can skip understanding in the
+          short term, and it bites later. That is the point where a team scraps a codebase, because nobody
+          can safely change it.
+        </div>
+        <div class="callout warn"><b class="t">What it feels like: Charlie Chaplin on the assembly line</b>
+          The line speeds up, and the worker can no longer keep up with the bolts coming at him. That is a
+          developer reviewing a coding agent's output.
+          <div style="position:relative;padding-top:56.25%;margin-top:10px;border-radius:8px;overflow:hidden">
+            <iframe src="https://www.youtube.com/embed/NT-mVVprnbs?start=108"
+              title="Modern Times: assembly line" style="position:absolute;inset:0;width:100%;height:100%;border:0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowfullscreen></iframe>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ ACT 4: THE METHOD ============ -->
+
+      <section class="slide" data-act="The method" data-title="Seven principles">
+        <div class="kicker">Part 3 · The method</div>
+        <h2>Seven principles behind the method</h2>
+        <div class="grid g2">
+          <div class="card"><div class="hd">1. Simplicity, above every other rule</div><div class="bd"><p>The smallest readable change that does what was asked. Anything more is a question to the developer, not a surprise in the diff.</p></div></div>
+          <div class="card"><div class="hd">2. All decisions are ours</div><div class="bd"><p>Including the small ones. The agent proposes. The developer decides. The decision is written down with its reason.</p></div></div>
+          <div class="card"><div class="hd">3. Written memory, not chat memory</div><div class="bd"><p>Plans, decisions, learnings, and git history are the record. A new session reads them, not the old conversation.</p></div></div>
+          <div class="card"><div class="hd">4. TDD: test-driven development</div><div class="bd"><p>Write the test first and watch it fail (red). Write the least code that makes it pass (green). Then tidy up while it stays green (refactor).</p><p>Why it helps with agents: the test pins down what "done" means before the agent writes code. It catches confident but wrong output, and stops a later session from quietly changing behavior. It also fences out extra code: anything no test asks for is a candidate to cut.</p></div></div>
+          <div class="card"><div class="hd">5. A different model reviews</div><div class="bd"><p>The model that wrote the plan or code is not the only one that reviews it. Then a human vets the review.</p></div></div>
+          <div class="card"><div class="hd">6. A hawk's eye on the agent</div><div class="bd"><p>The developer watches what the agent does and reviews while it works. The full picture of the system stays in the developer's head.</p></div></div>
+          <div class="card"><div class="hd">7. The method evolves</div><div class="bd"><p>Recurring problems change the workflow. New tools are tried carefully before they are adopted.</p></div></div>
+          <div class="callout info"><b class="t">The harness</b>Principles 1 to 7 are written into files every agent reads before it works. That written set is the harness.</div>
+        </div>
+      </section>
+
+      <section class="slide" data-act="The method" data-title="The harness">
+        <div class="kicker">Part 3 · The method</div>
+        <h2>The harness: one driver, many strong horses</h2>
+        <div class="harness">
+          <div class="col">
+            <div class="strap"><b>Policy files</b>Short rules every agent loads each turn, kept identical across Claude Code, Codex, and Cursor.</div>
+            <div class="strap"><b>Skills</b>Reusable workflows: ideate, brainstorm, plan, review, work, compound.</div>
+            <div class="strap"><b>Docs tree</b>Architecture, decisions, learnings, glossary, and plans, in fixed places.</div>
+          </div>
+          <div class="center">
+            <b>The developer</b>
+            <p>Holds the reins: decides, reviews, approves, and keeps the full view of the system.</p>
+            <p class="small">Agents pull. The developer steers.</p>
+          </div>
+          <div class="col">
+            <div class="strap"><b>Gates</b>No code before a reviewed plan. No merge before tests and code review.</div>
+            <div class="strap"><b>Test environment</b>Tests and live checks never touch production.</div>
+            <div class="strap"><b>Git</b>The system of record: small commits, tags on finished plans, history as backup.</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="slide" data-act="The method" data-title="The flow">
+        <div class="kicker">Part 3 · The method</div>
+        <h2>The flow: each stage answers one question</h2>
+        <div class="flow">
+          <div class="step"><b>Ideate</b><span>Which ideas are worth it?</span></div><div class="arrow">→</div>
+          <div class="step"><b>Brainstorm</b><span>What exactly do we build?</span></div><div class="arrow">→</div>
+          <div class="step gate"><b>Plan</b><span>How do we build one goal? Questions first.</span></div><div class="arrow">→</div>
+          <div class="step gate"><b>Document review</b><span>Several reviewers, including another model</span></div>
+        </div>
+        <div class="flow">
+          <div class="step gate"><b>Vet</b><span>A human accepts or rejects each review comment</span></div><div class="arrow">→</div>
+          <div class="step"><b>Work</b><span>Test-first, in the test environment</span></div><div class="arrow">→</div>
+          <div class="step gate"><b>Code review</b><span>Does the diff match the plan?</span></div><div class="arrow">→</div>
+          <div class="step"><b>Compound</b><span>Write the lesson only if the code will not teach it</span></div>
+        </div>
+        <p>
+          Blue stages are gates: the developer decides there. Each stage writes one artifact into a known
+          folder. The next stage reads that artifact. It does not re-decide the previous question.
+        </p>
+        <p class="muted">
+          Simplicity sizes the flow. A one-step fix skips straight to a test and the change. The full flow
+          is for work that is multi-step, risky, or touches data, batch jobs, or external contracts.
+        </p>
+      </section>
+
+      <section class="slide" data-act="The method" data-title="Highlights">
+        <div class="kicker">Part 3 · The method</div>
+        <h2>Six highlights worth knowing before the details</h2>
+        <div class="grid g3">
+          <div class="card"><div class="hd">Grill before planning</div><div class="bd"><p>The agent asks one question at a time until every open branch of the design is closed. Settled decisions are never asked again.</p></div></div>
+          <div class="card"><div class="hd">The ExecPlan</div><div class="bd"><p>A living, self-contained plan a cold agent can finish alone. It has a progress checklist, a decision log, discoveries, and an observable acceptance test.</p></div></div>
+          <div class="card"><div class="hd">One goal per plan</div><div class="bd"><p>If a plan spans several separately shippable outcomes, split it. Small plans can be reviewed and finished.</p></div></div>
+          <div class="card"><div class="hd">Test-first, explained</div><div class="bd"><p>Red, green, refactor. The agent states what each test proves, why that layer, the command, and the failure it saw.</p></div></div>
+          <div class="card"><div class="hd">Cross-model review, then vet</div><div class="bd"><p>A different model reviews plans and code. A human then accepts or rejects each comment against the project rules.</p></div></div>
+          <div class="card"><div class="hd">Compounding knowledge</div><div class="bd"><p>Learnings, decisions, and a shared glossary make each next task easier. The rule files are pruned so they stay short.</p></div></div>
+        </div>
+      </section>
+
+      <section class="slide" data-act="The method" data-title="The ExecPlan as memory">
+        <div class="kicker">Part 3 · The method</div>
+        <h2>The ExecPlan is the agent's long-term memory</h2>
+        <p>
+          The reader is a newcomer with only the codebase and this one file. If the session ends, a new
+          agent resumes from the plan, not from a conversation it never saw.
+        </p>
+        <table>
+          <thead><tr><th>Section</th><th>The forgetting it prevents</th></tr></thead>
+          <tbody>
+            <tr><td><b>Purpose</b></td><td>Building the wrong thing. It states what a person can do afterwards, separate from how.</td></tr>
+            <tr><td><b>Progress</b></td><td>Losing the place. Timestamped checkboxes. A half-done step is split into done and remaining.</td></tr>
+            <tr><td><b>Decision Log</b></td><td>Re-deciding every session. Each decision has its reason and date.</td></tr>
+            <tr><td><b>Surprises and Discoveries</b></td><td>Rediscovering the same bug. Evidence is kept in the plan.</td></tr>
+            <tr><td><b>Context and Orientation</b></td><td>Guessing the codebase. It names the files and defines the terms.</td></tr>
+            <tr><td><b>Interfaces and Dependencies</b></td><td>Inventing a second library. It names the modules to use.</td></tr>
+            <tr><td><b>Validation and Acceptance</b></td><td>"It compiles" passing as done. It gives exact commands and expected output.</td></tr>
+            <tr><td><b>Idempotence and Recovery</b></td><td>A failed step leaving a mess. It says how to retry or roll back safely.</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <!-- ============ ACT 5: ANSWERS ============ -->
+
+      <section class="slide" data-act="Answers" data-title="How to read the answers">
+        <div class="kicker">Part 4 · Answers</div>
+        <h2>Every challenge has an owner in the method</h2>
+        <p>
+          The next slides take each family of challenges in turn. For every challenge: what goes wrong, and
+          which parts of the method answer it. Most are covered by more than one part, so if one check
+          misses, another catches it.
+        </p>
+        <p>The parts referred to, as tags:</p>
+        <div>
+          <span class="pill">Simplicity rule</span>
+          <span class="pill">Decisions are ours</span>
+          <span class="pill">Grill before planning</span>
+          <span class="pill">ExecPlan</span>
+          <span class="pill">One goal per plan</span>
+          <span class="pill">Document review</span>
+          <span class="pill">Cross-model review</span>
+          <span class="pill">Vet</span>
+          <span class="pill">Test-first</span>
+          <span class="pill">Test environment</span>
+          <span class="pill">Code review</span>
+          <span class="pill">Compound learnings</span>
+          <span class="pill">Glossary</span>
+          <span class="pill">Policy files</span>
+          <span class="pill">Harness pruning</span>
+          <span class="pill">Coding rules</span>
+          <span class="pill">Search before building</span>
+          <span class="pill">Hawk's eye</span>
+          <span class="pill">Git record</span>
+          <span class="pill">Team workflow</span>
+          <span class="pill">Economy guidelines</span>
+        </div>
+      </section>
+
+      <section class="slide" data-act="Answers" data-title="Answering the misconceptions">
+        <div class="kicker">Part 4 · Answers</div>
+        <h2>The misconceptions, answered</h2>
+        <table>
+          <thead><tr><th>Belief</th><th>What breaks</th><th>What answers it</th></tr></thead>
+          <tbody>
+            <tr><td class="issue">Code is cheap</td><td class="why">Ownership cost: review, rework, scrapped projects.</td>
+              <td><span class="pill">Simplicity rule</span><span class="pill">Coding rules</span><span class="pill">Code review</span><span class="pill">Compound learnings</span><br/>Less code, reused code, and reviewed code is cheaper to own than more code.</td></tr>
+            <tr><td class="issue">Double or triple output</td><td class="why">True on prototypes. Measured slowdowns on mature code.</td>
+              <td><span class="pill">One goal per plan</span><span class="pill">ExecPlan</span><span class="pill">Test-first</span><br/>Measure finished, verified outcomes per plan, not lines of code or how fast it felt.</td></tr>
+            <tr><td class="issue">Works in every situation</td><td class="why">Large codebases hide tacit knowledge the agent never sees.</td>
+              <td><span class="pill">Policy files</span><span class="pill">Glossary</span><span class="pill">Compound learnings</span><span class="pill">Search before building</span><br/>Write the tacit knowledge down where every agent reads it. Use a code map to orient before editing.</td></tr>
+            <tr><td class="issue">Works with any technology</td><td class="why">Sparse training data leads to invented APIs.</td>
+              <td><span class="pill">ExecPlan</span><span class="pill">Policy files</span><span class="pill">Test-first</span><br/>Fetch current documentation into context. Put technology-specific rules in the package policy. Use a prototype milestone to prove a library behaves as expected before building on it.</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="slide" data-act="Answers" data-title="A. Control">
+        <div class="kicker">Part 4 · Answers · A. Control</div>
+        <h2>Keeping the decisions with the developer</h2>
+        <table>
+          <thead><tr><th>Challenge</th><th>What goes wrong</th><th>What answers it</th></tr></thead>
+          <tbody>
+            <tr><td class="issue">Agent decides without the developer knowing</td><td class="why">Defaults, fallbacks, and new dependencies become architecture unseen.</td>
+              <td><span class="pill">Decisions are ours</span><span class="pill">Grill before planning</span><span class="pill">ExecPlan</span><span class="pill">Simplicity rule</span><br/>Open questions are asked one at a time before the plan is written. Every choice lands in the Decision Log. Anything beyond the minimal change must be asked first. Silent defaults and fallbacks are forbidden.</td></tr>
+            <tr><td class="issue">Too many options, not examined</td><td class="why">The first plausible option wins by default.</td>
+              <td><span class="pill">Grill before planning</span><span class="pill">Decisions are ours</span><span class="pill">Document review</span><br/>One question at a time, with the recommended option first and the trade-off stated. The chosen option and the rejected ones are recorded with reasons. Reviewers check that the reasoning holds.</td></tr>
+            <tr><td class="issue">Developers stop reading, and stop understanding, the code</td><td class="why">Trust grows faster than the agent's reliability. Cognitive debt builds up.</td>
+              <td><span class="pill">Hawk's eye</span><span class="pill">Test-first</span><span class="pill">Code review</span><span class="pill">Vet</span><br/>Every change comes with an explainer and a quiz (see "Closing the understanding gap").The agent must explain every test it writes. The diff is reviewed against the plan. The developer reviews code while the agent is busy, so reading becomes routine, not an extra job.</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="slide" data-act="Answers" data-title="A hawk's eye, in practice">
+        <div class="kicker">Part 4 · Answers · A. Control</div>
+        <h2>A hawk's eye: what to watch while the agent works</h2>
+        <p>Waiting for the agent is review time. These signals mean something slipped through:</p>
+        <div class="grid g2">
+          <div class="card"><div class="hd">In the diff</div><div class="bd">
+            <ul class="plain">
+              <li>Files outside the plan's scope changed</li>
+              <li>A new dependency, default value, or fallback appeared</li>
+              <li>A test was weakened or deleted so it would pass</li>
+              <li>A second version of something that already exists</li>
+            </ul></div></div>
+          <div class="card"><div class="hd">In the conversation</div><div class="bd">
+            <ul class="plain">
+              <li>A choice made in prose but missing from the Decision Log</li>
+              <li>"Done" claimed without a command and its output</li>
+              <li>The same fix tried twice without a new diagnosis</li>
+              <li>Tests run against anything other than the test environment</li>
+            </ul></div></div>
+        </div>
+        <div class="callout ok"><b class="t">The full view stays with the developer</b>
+          Developers read and approve every plan, and own the architecture notes. The code map exists to
+          orient people, not only agents. The goal is that the developer can still explain the whole system
+          without asking the agent.
+        </div>
+      </section>
+
+      <section class="slide" data-act="Answers" data-title="Closing the understanding gap">
+        <div class="kicker">Part 4 · Answers · The understanding gap</div>
+        <h2>Ways to understand code beyond reading the diff line by line</h2>
+        <div class="grid g2">
+          <div class="card"><div class="hd">1. Explainers for every change</div><div class="bd">
+            <p>When the agent finishes, it writes an explanation, not just a diff:</p>
+            <ul class="plain">
+              <li><b>Background first:</b> what was already there before the change</li>
+              <li><b>Intuition before details:</b> the goal and key concepts before any code</li>
+              <li><b>A literate diff:</b> changes in a sensible order, as prose with code snippets</li>
+            </ul>
+            <p class="small">Read the explainer first, then the diff.</p></div></div>
+          <div class="card"><div class="hd">2. A quiz as a speed regulator</div><div class="bd">
+            <p>The explainer ends with about five questions about the change. The rule: do not send the code on, or approve someone else's, until you pass.</p>
+            <p>Reading is easy to fake to yourself. The quiz checks that you understood it, so the loop cannot run faster than your understanding.</p></div></div>
+          <div class="card"><div class="hd">3. Micro-worlds</div><div class="bd">
+            <p>Have the agent build small tools you can play with: a step-through debugger, a visual before-and-after of a migration, or an interactive figure.</p>
+            <p>This applies Seymour Papert's idea that people learn best by living inside the subject. Agents can write code that helps people understand other code.</p></div></div>
+          <div class="card"><div class="hd">4. Shared spaces</div><div class="bd">
+            <p>A team needs to understand <i>together</i>. A shared mental model and vocabulary allow fast, creative conversation. Keep explainers where the team discusses them, not in one person's chat.</p></div></div>
+        </div>
+        <div class="callout ok"><b class="t">Where this lives in the method</b>
+          <span class="pill">Hawk's eye</span><span class="pill">Test-first</span><span class="pill">Code review</span><span class="pill">Glossary</span><span class="pill">Team workflow</span><br/>
+          An explain-diff skill turns each finished change into an explainer with a quiz. The agent must
+          explain every test it writes. Plans and decision logs are written for a newcomer. The glossary
+          provides the shared vocabulary. The goal is to augment the developer, not just to automate.
+        </div>
+      </section>
+
+      <section class="slide" data-act="Answers" data-title="B. Speed">
+        <div class="kicker">Part 4 · Answers · B. Speed</div>
+        <h2>Slowing the agent to the speed of understanding</h2>
+        <table>
+          <thead><tr><th>Challenge</th><th>What goes wrong</th><th>What answers it</th></tr></thead>
+          <tbody>
+            <tr><td class="issue">Output arrives too fast to follow</td><td class="why">Review becomes a rubber stamp, or it is skipped.</td>
+              <td><span class="pill">ExecPlan</span><span class="pill">Document review</span><span class="pill">One goal per plan</span><span class="pill">Git record</span><span class="pill">Hawk's eye</span><br/>No code before a reviewed plan, so the agent cannot run ahead of the design. One goal per plan and one commit per coherent change keep each step small enough to read.</td></tr>
+            <tr><td class="issue">Developers expected to match the agent's speed</td><td class="why">Speed is measured in output, so quality pays for it.</td>
+              <td><span class="pill">Test-first</span><span class="pill">Team workflow</span><span class="pill">Economy guidelines</span><br/>Change what is measured: a finished plan with observable acceptance and passing tests. The evidence slide is the argument for this: felt speed and measured speed differ.</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="slide" data-act="Answers" data-title="C. Memory and consistency">
+        <div class="kicker">Part 4 · Answers · C. Memory and consistency</div>
+        <h2>Writing memory down so the agent does not need to remember</h2>
+        <table>
+          <thead><tr><th>Challenge</th><th>What goes wrong</th><th>What answers it</th></tr></thead>
+          <tbody>
+            <tr><td class="issue">Limited memory, no long-term memory</td><td class="why">Every new session starts nearly blank.</td>
+              <td><span class="pill">ExecPlan</span><span class="pill">Compound learnings</span><span class="pill">Glossary</span><span class="pill">Git record</span><br/>The plan is self-contained and living. Solved problems become learnings. The glossary fixes the vocabulary. Tags mark finished work in history. A persistent issue tracker for agents is under trial.</td></tr>
+            <tr><td class="issue">Forgets the middle of the context</td><td class="why">Long instruction files and long chats bury the key rule.</td>
+              <td><span class="pill">Harness pruning</span><span class="pill">Policy files</span><span class="pill">ExecPlan</span><br/>Always-loaded files stay short and point to details. Skills load a reference only at the step it governs. Exploration runs in separate sub-agents, so the main context stays clean.</td></tr>
+            <tr><td class="issue">Misses one task among many</td><td class="why">The tenth item on a list quietly disappears.</td>
+              <td><span class="pill">One goal per plan</span><span class="pill">ExecPlan</span><span class="pill">Code review</span><br/>Fewer tasks per plan. A Progress checklist that must match reality at every stop. Code review checks the diff against every requirement in the plan.</td></tr>
+            <tr><td class="issue">A different answer on every turn</td><td class="why">Each session re-designs the same thing.</td>
+              <td><span class="pill">Decisions are ours</span><span class="pill">ExecPlan</span><span class="pill">Test-first</span><br/>A decision is made once and written down. Settled decisions are not asked again. Tests pin the behavior, so a different implementation must still produce the same result.</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="slide" data-act="Answers" data-title="D. Quality">
+        <div class="kicker">Part 4 · Answers · D. Quality</div>
+        <h2>Making our patterns the default, and simplicity the law</h2>
+        <table>
+          <thead><tr><th>Challenge</th><th>What goes wrong</th><th>What answers it</th></tr></thead>
+          <tbody>
+            <tr><td class="issue">Uses familiar patterns, not ours</td><td class="why">The team's chosen design is replaced by the internet's average.</td>
+              <td><span class="pill">Policy files</span><span class="pill">Coding rules</span><span class="pill">ExecPlan</span><span class="pill">Code review</span><br/>Our patterns are written where every agent reads them, with good and bad examples. The plan names the modules and interfaces to use. Review checks the diff against the written standard.</td></tr>
+            <tr><td class="issue">Re-implements instead of reusing</td><td class="why">Two versions of one behavior drift apart.</td>
+              <td><span class="pill">Search before building</span><span class="pill">Coding rules</span><span class="pill">Code review</span><br/>Search the code map, past learnings, and the framework already in use before writing anything new. "Once and only once" and deep modules are explicit rules. Review flags duplication.</td></tr>
+            <tr><td class="issue">Excellent or garbage</td><td class="why">Quality depends on luck in that turn.</td>
+              <td><span class="pill">Test-first</span><span class="pill">Test environment</span><span class="pill">Cross-model review</span><span class="pill">Vet</span><br/>A failing test first, then the code, so behavior is proven, not assumed. A different model reviews it. A human filters that review against the rules.</td></tr>
+            <tr><td class="issue">Over-complex, does too much</td><td class="why">Speculative branches, options, and fallbacks.</td>
+              <td><span class="pill">Simplicity rule</span><span class="pill">Vet</span><span class="pill">Decisions are ours</span><br/>Simplicity outranks every other rule. Extra behavior must be asked for first. Vetting rejects review comments that add features nobody requested.</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="slide" data-act="Answers" data-title="E. Team and cost">
+        <div class="kicker">Part 4 · Answers · E. Team and cost</div>
+        <h2>Scaling to a team, and keeping the bill sane</h2>
+        <table>
+          <thead><tr><th>Challenge</th><th>What goes wrong</th><th>What answers it</th></tr></thead>
+          <tbody>
+            <tr><td class="issue">Many people with agents on one codebase</td><td class="why">Each person's agent invents its own conventions.</td>
+              <td><span class="pill">Team workflow</span><span class="pill">Policy files</span><span class="pill">One goal per plan</span><span class="pill">Git record</span><br/>The team agrees the workflow and its general, project, and technology rules before starting. Every member and every agent tool reads the same policy. Plans have unique IDs and one goal. Work stays on agreed branches. A second working copy is created only with approval.</td></tr>
+            <tr><td class="issue">Costs climb out of control</td><td class="why">Long contexts, repeated attempts, rediscovery.</td>
+              <td><span class="pill">Economy guidelines</span><span class="pill">Harness pruning</span><span class="pill">Compound learnings</span><span class="pill">Simplicity rule</span><br/>See the next slide.</td></tr>
+          </tbody>
+        </table>
+        <div class="callout info"><b class="t">Team rollout, in two steps</b>
+          First, as a team, write down the workflow plus general, project-specific, and technology-specific
+          guidelines. Second, have each member match that flow, using the same skills and the same policy
+          files. A team where each person improvises with their own agent cannot use this method.
+        </div>
+      </section>
+
+      <section class="slide" data-act="Answers" data-title="Economy guidelines">
+        <div class="kicker">Part 4 · Answers · E. Team and cost</div>
+        <h2>Agentic coding economy guidelines</h2>
+        <div class="grid g2">
+          <div class="card"><div class="hd">Right-size the work</div><div class="bd"><p>A direct answer for a one-step change. A short brief for bounded work. A full plan only when the work earns it. Simplicity saves money as well as code.</p></div></div>
+          <div class="card"><div class="hd">Context is the bill</div><div class="bd"><p>Always-loaded rule files are paid for on every turn. Prune them. Load detail only when a step needs it.</p></div></div>
+          <div class="card"><div class="hd">Match the model to the job</div><div class="bd"><p>Use lighter, cheaper models for search and exploration sub-agents. Use the strongest model for planning and review decisions, where quality matters most.</p></div></div>
+          <div class="card"><div class="hd">Stop rediscovery</div><div class="bd"><p>Search past learnings and decisions before solving. A problem solved twice is paid for twice.</p></div></div>
+          <div class="card"><div class="hd">Break loops early</div><div class="bd"><p>If the same fix fails twice, stop and diagnose the root cause instead of asking for a third try.</p></div></div>
+          <div class="card"><div class="hd">Review where the risk is</div><div class="bd"><p>Use the full multi-reviewer, cross-model pass for risky changes such as data, contracts, and security. A light review is enough for low-risk edits.</p></div></div>
+        </div>
+        <p class="muted">Measure cost per finished, verified plan, not per token or per prompt.</p>
+      </section>
+
+      <!-- ============ ACT 6: KEEPING IT ALIVE ============ -->
+
+      <section class="slide" data-act="Keeping it alive" data-title="The method keeps learning">
+        <div class="kicker">Keeping it alive</div>
+        <h2>The method keeps learning</h2>
+        <div class="grid g2">
+          <div class="card"><div class="hd">Hunt recurring issues</div><div class="bd">
+            <p>When the same kind of mistake shows up twice, change the workflow, not just the code:</p>
+            <ul class="plain">
+              <li>write a learning when the code alone will not teach it</li>
+              <li>add or tighten a rule in the policy files</li>
+              <li>review finished sessions for wrong turns and wasted searches</li>
+              <li>prune rules that no longer pull their weight</li>
+            </ul></div></div>
+          <div class="card"><div class="hd">Adopt new methods carefully</div><div class="bd">
+            <p>Keep watching for new tools and methods, but trial a promising one thoroughly before going full steam.</p>
+            <ul class="plain">
+              <li>use it on one contained plan first</li>
+              <li>record what it fixed and what it broke</li>
+              <li>adopt it, adapt it, or drop it, in writing</li>
+            </ul>
+            <p class="small">Example in progress: a persistent issue tracker built for coding agents, being trialled as a longer-term memory for tasks.</p>
+          </div></div>
+        </div>
+        <div class="callout neutral" style="background:var(--subtle);border-color:var(--border)"><b class="t">Maintaining the harness</b>
+          Prune the always-loaded rule files first. Then update skills from upstream without losing local
+          changes. Then keep each rule in one place, linked from the rest.
+        </div>
+      </section>
+
+      <section class="slide" data-act="Keeping it alive" data-title="The whole map">
+        <div class="kicker">Summary</div>
+        <h2>Every challenge, and its first line of defense</h2>
+        <table>
+          <thead><tr><th>Challenge</th><th>First line of defense</th><th>Backed up by</th></tr></thead>
+          <tbody>
+            <tr><td>Hidden decisions</td><td>Grill before planning, Decision Log</td><td>Simplicity rule, document review</td></tr>
+            <tr><td>Too many options</td><td>One question at a time, recorded rationale</td><td>Document review</td></tr>
+            <tr><td><b>Nobody understands the code</b></td><td>Explainer plus quiz for every change</td><td>Hawk's eye, explained tests, micro-worlds, glossary</td></tr>
+            <tr><td>Too fast to follow</td><td>Plan gate before code</td><td>One goal per plan, small commits</td></tr>
+            <tr><td>Pressure to match speed</td><td>Observable acceptance as the measure</td><td>Team workflow</td></tr>
+            <tr><td>No long-term memory</td><td>Living ExecPlan</td><td>Learnings, glossary, git tags</td></tr>
+            <tr><td>Forgets the middle</td><td>Short, pruned policy files</td><td>Step-loaded references, sub-agents</td></tr>
+            <tr><td>Misses a task</td><td>Progress checklist</td><td>Code review against the plan</td></tr>
+            <tr><td>Different answer each turn</td><td>Settled decisions written once</td><td>Tests pin behavior</td></tr>
+            <tr><td>Familiar, not our, patterns</td><td>Written coding rules</td><td>Plan interfaces, code review</td></tr>
+            <tr><td>Re-implements</td><td>Search before building</td><td>Deep modules, review</td></tr>
+            <tr><td>Excellent or garbage</td><td>Test-first in the test environment</td><td>Cross-model review, vet</td></tr>
+            <tr><td>Over-complex</td><td>Simplicity above all</td><td>Ask-before-adding, vet</td></tr>
+            <tr><td>Many people, one codebase</td><td>Shared written workflow</td><td>Synced policy files, git discipline</td></tr>
+            <tr><td>Cost</td><td>Economy guidelines</td><td>Pruning, learnings, right-sizing</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="slide" data-act="Keeping it alive" data-title="Close">
+        <div class="kicker">Close</div>
+        <p class="bigquote">Agents are not the problem, and they are not the solution. The harness is.</p>
+        <p class="lead">
+          The decisions stay ours. We understand what was built before it ships. Memory is written down. Every step is checked by a test, a second model, or
+          a person. Simplicity wins every tie.
+        </p>
+        <p>
+          The companion deck walks through the method in detail: the loop, ExecPlan sections, where decisions
+          live, the test environment, git as the record, and keeping the harness healthy. The training
+          codebase shows all of it on a small, working example.
+        </p>
+      </section>
+
+      <footer class="foot">
+        Companion to the detailed method deck in the same folder. Evidence: METR randomized trial (2025);
+        Xu et al., arXiv 2510.10165; Geoffrey Litt, "Understanding is the new bottleneck" (2026).
+      </footer>
+    </main>
+  </div>
+</div>
+
+<script>
+  // Builds the left-hand list from each slide's data-title and data-act,
+  // then shows one slide at a time. The current slide is kept in the URL hash.
+  (function () {
+    var slides = Array.prototype.slice.call(document.querySelectorAll("section.slide"));
+    var toc = document.getElementById("toc");
+    var counter = document.getElementById("counter");
+    var prev = document.getElementById("prev");
+    var next = document.getElementById("next");
+    var buttons = [];
+    var lastAct = null;
+
+    slides.forEach(function (slide, i) {
+      var act = slide.getAttribute("data-act");
+      if (act !== lastAct) {
+        var label = document.createElement("div");
+        label.className = "act";
+        label.textContent = act;
+        toc.appendChild(label);
+        lastAct = act;
+      }
+      var b = document.createElement("button");
+      b.type = "button";
+      b.textContent = (i + 1) + ". " + slide.getAttribute("data-title");
+      b.addEventListener("click", function () { show(i); });
+      toc.appendChild(b);
+      buttons.push(b);
+    });
+
+    var current = 0;
+    function show(i) {
+      current = Math.max(0, Math.min(slides.length - 1, i));
+      slides.forEach(function (s, j) { s.classList.toggle("active", j === current); });
+      buttons.forEach(function (b, j) { b.setAttribute("aria-current", j === current ? "true" : "false"); });
+      counter.textContent = (current + 1) + " / " + slides.length;
+      prev.disabled = current === 0;
+      next.disabled = current === slides.length - 1;
+      history.replaceState(null, "", "#slide-" + (current + 1));
+      window.scrollTo(0, 0);
+    }
+
+    prev.addEventListener("click", function () { show(current - 1); });
+    next.addEventListener("click", function () { show(current + 1); });
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "ArrowRight" || e.key === "PageDown") show(current + 1);
+      if (e.key === "ArrowLeft" || e.key === "PageUp") show(current - 1);
+    });
+
+    var m = /^#slide-(\d+)$/.exec(location.hash);
+    show(m ? parseInt(m[1], 10) - 1 : 0);
+  })();
+</script>
+</body>
+</html>

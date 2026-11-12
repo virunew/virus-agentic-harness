@@ -1,22 +1,193 @@
-import {
-  Button,
-  Callout,
-  Card,
-  CardBody,
-  CardHeader,
-  Divider,
-  Grid,
-  H1,
-  H2,
-  H3,
-  Pill,
-  Row,
-  Stack,
-  Stat,
-  Table,
-  Text,
-  useCanvasState,
-} from "cursor/canvas";
+<!DOCTYPE html>
+<!-- Same deck as agentic-coding-methodology.html — open the .html file in a browser. -->
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Agentic coding method</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      background: #fafafa;
+      color: #18181b;
+    }
+    #root {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 24px 20px 48px;
+    }
+    @media (max-width: 800px) {
+      .deck-grid { grid-template-columns: 1fr !important; }
+      .deck-nav { display: none; }
+    }
+  </style>
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="text/plain" id="deck-source">
+const { useState, createElement: h } = React;
+
+const tones = {
+  bg: "#ffffff",
+  bgSubtle: "#f4f4f5",
+  border: "#e4e4e7",
+  text: "#18181b",
+  textSecondary: "#52525b",
+  textTertiary: "#71717a",
+  accent: "#2563eb",
+  accentFg: "#ffffff",
+  warningBg: "#fef3c7",
+  warningBorder: "#f59e0b",
+  infoBg: "#eff6ff",
+  infoBorder: "#3b82f6",
+  successBg: "#ecfdf5",
+  successBorder: "#10b981",
+  neutralBg: "#f4f4f5",
+  neutralBorder: "#d4d4d8",
+};
+
+function Row({ children, gap = 8, align, justify, wrap, style }) {
+  return h("div", {
+    style: {
+      display: "flex",
+      flexDirection: "row",
+      flexWrap: wrap ? "wrap" : "nowrap",
+      gap,
+      alignItems: align === "center" ? "center" : align === "end" ? "flex-end" : align === "stretch" ? "stretch" : "flex-start",
+      justifyContent: justify === "space-between" ? "space-between" : justify === "center" ? "center" : justify === "end" ? "flex-end" : "flex-start",
+      ...style,
+    },
+  }, children);
+}
+function Grid({ children, columns, gap = 8, align, style, className }) {
+  const cols = typeof columns === "number" ? `repeat(${columns}, minmax(0, 1fr))` : columns;
+  return h("div", {
+    className,
+    style: {
+      display: "grid",
+      gridTemplateColumns: cols,
+      gap,
+      alignItems: align === "start" ? "start" : align,
+      ...style,
+    },
+  }, children);
+}
+function Stack({ children, gap = 8, style, className }) {
+  return h("div", { className, style: { display: "flex", flexDirection: "column", gap, ...style } }, children);
+}
+function H1({ children }) { return h("h1", { style: { margin: 0, fontSize: 24, fontWeight: 600, color: tones.text } }, children); }
+function H2({ children }) { return h("h2", { style: { margin: 0, fontSize: 18, fontWeight: 600, color: tones.text } }, children); }
+function H3({ children }) { return h("h3", { style: { margin: 0, fontSize: 15, fontWeight: 600, color: tones.text } }, children); }
+function Text({ children, tone, size }) {
+  const color = tone === "secondary" ? tones.textSecondary : tone === "tertiary" ? tones.textTertiary : tones.text;
+  const fontSize = size === "small" ? 13 : 14;
+  return h("p", { style: { margin: 0, lineHeight: 1.55, color, fontSize } }, children);
+}
+function Divider() { return h("hr", { style: { border: "none", borderTop: `1px solid ${tones.border}`, margin: 0 } }); }
+function Pill({ children, active }) {
+  return h("span", {
+    style: {
+      display: "inline-block",
+      padding: "4px 10px",
+      borderRadius: 999,
+      fontSize: 12,
+      fontWeight: 500,
+      background: active ? tones.accent : tones.bgSubtle,
+      color: active ? tones.accentFg : tones.textSecondary,
+      border: `1px solid ${active ? tones.accent : tones.border}`,
+    },
+  }, children);
+}
+function Button({ children, variant, disabled, onClick }) {
+  const base = {
+    border: "1px solid transparent",
+    borderRadius: 6,
+    padding: "8px 12px",
+    fontSize: 13,
+    cursor: disabled ? "not-allowed" : "pointer",
+    opacity: disabled ? 0.5 : 1,
+    textAlign: "left",
+    width: variant === "ghost" || variant === "primary" || variant === "secondary" ? undefined : "100%",
+  };
+  let style = { ...base, background: tones.bgSubtle, color: tones.text, borderColor: tones.border };
+  if (variant === "primary") style = { ...base, background: tones.accent, color: tones.accentFg, borderColor: tones.accent };
+  if (variant === "ghost") style = { ...base, background: "transparent", color: tones.text, borderColor: "transparent" };
+  if (variant === "secondary") style = { ...base, background: tones.bg, color: tones.text, borderColor: tones.border };
+  return h("button", { type: "button", style, disabled, onClick }, children);
+}
+function Card({ children }) {
+  return h("div", { style: { border: `1px solid ${tones.border}`, borderRadius: 8, overflow: "hidden", background: tones.bg } }, children);
+}
+function CardHeader({ children }) {
+  return h("div", { style: { padding: "10px 14px", fontWeight: 600, fontSize: 14, borderBottom: `1px solid ${tones.border}`, background: tones.bgSubtle } }, children);
+}
+function CardBody({ children }) {
+  return h("div", { style: { padding: 14 } }, children);
+}
+function Stat({ value, label }) {
+  return h("div", { style: { minWidth: 120 } }, [
+    h("div", { style: { fontSize: 22, fontWeight: 600, color: tones.text } }, value),
+    h("div", { style: { fontSize: 12, color: tones.textSecondary, marginTop: 4 } }, label),
+  ]);
+}
+const calloutStyles = {
+  warning: { bg: tones.warningBg, border: tones.warningBorder },
+  info: { bg: tones.infoBg, border: tones.infoBorder },
+  success: { bg: tones.successBg, border: tones.successBorder },
+  neutral: { bg: tones.neutralBg, border: tones.neutralBorder },
+};
+function Callout({ tone = "neutral", title, children }) {
+  const s = calloutStyles[tone] || calloutStyles.neutral;
+  return h("div", {
+    style: { padding: 12, borderRadius: 8, background: s.bg, border: `1px solid ${s.border}` },
+  }, [
+    title ? h("div", { style: { fontWeight: 600, marginBottom: 6, fontSize: 14 } }, title) : null,
+    h("div", { style: { fontSize: 14, lineHeight: 1.55, color: tones.text } }, children),
+  ]);
+}
+const rowToneBg = { neutral: tones.bgSubtle, warning: tones.warningBg, info: tones.infoBg, success: tones.successBg };
+function Table({ headers, rows, rowTone }) {
+  return h("div", { style: { overflowX: "auto", border: `1px solid ${tones.border}`, borderRadius: 8 } }, [
+    h("table", { style: { width: "100%", borderCollapse: "collapse", fontSize: 13 } }, [
+      h("thead", null, h("tr", null, headers.map((hdr) =>
+        h("th", {
+          key: hdr,
+          style: {
+            textAlign: "left",
+            padding: "10px 12px",
+            borderBottom: `1px solid ${tones.border}`,
+            background: tones.bgSubtle,
+            fontWeight: 600,
+            color: tones.text,
+          },
+        }, hdr)
+      ))),
+      h("tbody", null, rows.map((row, ri) =>
+        h("tr", {
+          key: ri,
+          style: { background: rowTone && rowTone[ri] ? rowToneBg[rowTone[ri]] || tones.bg : tones.bg },
+        }, row.map((cell, ci) =>
+          h("td", {
+            key: ci,
+            style: {
+              padding: "10px 12px",
+              borderBottom: ri < rows.length - 1 ? `1px solid ${tones.border}` : "none",
+              verticalAlign: "top",
+              color: tones.text,
+              lineHeight: 1.45,
+            },
+          }, cell)
+        ))
+      )),
+    ]),
+  ]);
+}
+
 
 const SLIDES = [
   "The method",
@@ -38,10 +209,10 @@ const SLIDES = [
   "Docs map",
   "Sibling systems",
   "Cold start",
-] as const;
+];
 
-export default function AgenticCodingMethodology() {
-  const [slide, setSlide] = useCanvasState("slide", 0);
+function AgenticCodingMethodology() {
+  const [slide, setSlide] = useState("slide", 0);
   const index = Math.min(Math.max(slide, 0), SLIDES.length - 1);
 
   return (
@@ -59,8 +230,8 @@ export default function AgenticCodingMethodology() {
         </Pill>
       </Row>
 
-      <Grid columns="240px 1fr" gap={20} align="start">
-        <Stack gap={4}>
+      <Grid columns="240px 1fr" gap={20} align="start" className="deck-grid">
+        <Stack gap={4} className="deck-nav">
           {SLIDES.map((title, i) => (
             <Button
               key={title}
@@ -103,7 +274,7 @@ export default function AgenticCodingMethodology() {
   );
 }
 
-function SlideBody({ index }: { index: number }) {
+function SlideBody({ index }) {
   switch (index) {
     case 0:
       return <Overview />;
@@ -1150,3 +1321,19 @@ function ColdStart() {
     </Stack>
   );
 }
+
+
+const root = ReactDOM.createRoot(document.getElementById("root"));
+root.render(<AgenticCodingMethodology />);
+  </script>
+  <script>
+    (function () {
+      const source = document.getElementById("deck-source").textContent;
+      const code = Babel.transform(source, {
+        presets: [["react", { runtime: "classic" }]],
+      }).code;
+      (0, eval)(code);
+    })();
+  </script>
+</body>
+</html>
